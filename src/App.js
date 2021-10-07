@@ -5,11 +5,6 @@ const DEFAULT_QUERY = 'redux';
 const PATH_BASE = 'https://hn.algolia.com/api/v1'; 
 const PATH_SEARCH = '/search'; 
 const PARAM_SEARCH = 'query=';
-
-
-const list = [ { title: 'React', url: 'https://facebook.github.io/react/', author: 'Jordan Walke', num_comments: 3, points: 4, objectID: 0, }, { title: 'Redux', url: 'https://github.com/reactjs/redux', author: 'Dan Abramov, Andrew Clark', num_comments: 2, points: 5, objectID: 1, }, ];
-
-const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
 class App extends Component {
 
   constructor(props){
@@ -20,12 +15,27 @@ class App extends Component {
     }
 
     this.setSearchTopStories = this.setSearchTopStories.bind(this); 
+    this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this); 
     this.onSearchChange = this.onSearchChange.bind(this);
+    this.onSearchSubmit = this.onSearchSubmit.bind(this); 
     this.onDismiss = this.onDismiss.bind(this);
+  }
+
+  fetchSearchTopStories(searchTerm) { 
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`) 
+    .then(response => response.json()) 
+    .then(result => this.setSearchTopStories(result)) 
+    .catch(error => error); 
   }
 
   setSearchTopStories(result) { 
     this.setState({ result }); 
+  }
+
+  onSearchSubmit(event) { 
+    const { searchTerm } = this.state; 
+    this.fetchSearchTopStories(searchTerm);
+    event.preventDefault();
   }
 
   onSearchChange(event){
@@ -40,10 +50,7 @@ class App extends Component {
 
   componentDidMount() { 
       const { searchTerm } = this.state;
-      fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result)) 
-      .catch(error => error);
+      this.fetchSearchTopStories(searchTerm);
   }
 
   render(){
@@ -55,24 +62,31 @@ class App extends Component {
           <Search
             value={searchTerm}
             onChange={this.onSearchChange} 
+            onSubmit={this.onSearchSubmit}
           >
             Search 
           </Search>
-          <Table 
-            list={result.hits}
-            pattern={searchTerm} 
-            onDismiss={this.onDismiss} 
-          /> 
         </div>
-    </div>
+        { result &&
+          <Table 
+            list={result.hits} 
+            onDismiss={this.onDismiss} 
+          />
+        } 
+        </div>
     );
   }
 }
 
 const Search = ({ value, onChange, children }) => 
-  <form> 
-    {children} 
-    <input type="text" value={value} onChange={onChange} /> 
+  <form onSubmit={onSubmit}> 
+    {children}
+    <input 
+      type="text" 
+      value={value} 
+      onChange={onChange} 
+    /> 
+    <button type="submit">{children}</button>
   </form> 
 
 class Table extends Component { 
@@ -80,10 +94,10 @@ class Table extends Component {
     const largeColumn = { width: '40%', };
     const midColumn = { width: '30%', };
     const smallColumn = { width: '10%', };
-    const { list, pattern, onDismiss } = this.props; 
+    const { list, onDismiss } = this.props; 
     return ( 
       <div className="table"> 
-        { list.filter(isSearched(pattern)).map(item => 
+        { list.map(item => 
           <div key={item.objectID} className="table-row">  
             <span style={largeColumn}> <a href={item.url}>{item.title}</a> </span>
             <span style={midColumn}>{item.author}</span>
