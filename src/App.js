@@ -103,12 +103,10 @@ class App extends Component {
             Search 
           </Search>
         </div>
-        { result &&
           <Table 
             list={list} 
             onDismiss={this.onDismiss} 
           />
-        } 
         <div className="interactions"> 
           <Button onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>More</Button> 
         </div>
