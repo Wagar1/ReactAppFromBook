@@ -24,7 +24,9 @@ class App extends Component {
     this.onDismiss = this.onDismiss.bind(this);
   }
 
-  setSearchTopStories(result) { this.setState({ result }); }
+  setSearchTopStories(result) { 
+    this.setState({ result }); 
+  }
 
   onSearchChange(event){
     this.setState({ searchTerm: event.target.value });
@@ -32,8 +34,8 @@ class App extends Component {
 
   onDismiss(id){
     const isNotId = item => item.objectID !== id; 
-    const updatedList = this.state.list.filter(isNotId);
-    this.setState({ list: updatedList });
+    const updatedHits = this.state.result.hits.filter(isNotId);
+    this.setState({ result: Object.assign({}, this.state.result, { hits: updatedHits })});
   }
 
   componentDidMount() { 
